@@ -9,11 +9,14 @@ import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 
+import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
+
+import java.util.Arrays;
 
 public class LoginActivity extends AppCompatActivity {
     private final String TAG = "LoginActivity";
@@ -28,7 +31,6 @@ public class LoginActivity extends AppCompatActivity {
 
         callbackManager = CallbackManager.Factory.create();
         loginButton = (LoginButton) findViewById(R.id.login_button);
-
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
@@ -36,6 +38,7 @@ public class LoginActivity extends AppCompatActivity {
 
                 Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
                 startActivity(intent);
+                LoginActivity.this.finish();
             }
 
             @Override
@@ -48,6 +51,17 @@ public class LoginActivity extends AppCompatActivity {
                 Log.d(TAG, "Oh no. You have no network or something wtf");
             }
         });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        if (AccessToken.getCurrentAccessToken() != null) {
+            Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+            startActivity(intent);
+            LoginActivity.this.finish();
+        }
     }
 
     @Override
