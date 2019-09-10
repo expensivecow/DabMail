@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">DabMail</string>
+    <string name="facebook_app_id">2472900879461747</string>
+    <string name="fb_login_protocol_scheme">fb2472900879461747</string>
+    <string name="relogin_error_msg">Something went wrong, please re-login and try again.</string>
+    <string name="from_email_hint">From</string>
+    <string name="to_email_hint">To</string>
+    <string name="body_hint">Body</string>
+    <string name="send_email_btn">Lets DAB</string>
+    <string name="camera_error">Camera2 APIs are not supported for the selected device</string>
+</resources>
