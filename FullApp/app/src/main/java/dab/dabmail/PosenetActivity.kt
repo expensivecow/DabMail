@@ -18,12 +18,8 @@ package dab.dabmail
 
 import android.Manifest
 import android.annotation.TargetApi
-import android.app.AlertDialog
-import android.app.Dialog
 import android.content.Context
 import android.content.Intent
-import android.content.Intent.getIntent
-import android.content.Intent.getIntentOld
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -43,10 +39,8 @@ import android.hardware.camera2.TotalCaptureResult
 import android.media.Image
 import android.media.ImageReader
 import android.media.ImageReader.OnImageAvailableListener
-import android.os.Build
-import android.os.Bundle
-import android.os.Handler
-import android.os.HandlerThread
+import android.os.*
+import android.util.Base64
 import android.util.Log
 import android.util.Size
 import android.util.SparseIntArray
@@ -57,14 +51,18 @@ import android.view.SurfaceView
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import dab.dabmail.BodyPart.*
+import dab.utilities.*
+import dab.utilities.BodyPart.*
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.io.UnsupportedEncodingException
 import java.lang.Math.atan2
 import java.lang.Math.toDegrees
+import java.nio.charset.Charset
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
@@ -587,19 +585,58 @@ class PosenetActivity :
       Log.e(TAG, "FOUND ALL JOINTS")
 
       if ((leftArmSector == 1 && rightArmSector == 1) || (leftArmSector == 2 && rightArmSector == 2)) {
-        var subject = "Get dabbed on"
+        var filePath: String = Environment.getExternalStorageDirectory().toString() + "/" + "temp" + ".png"
+        var f: File = File(filePath)
 
-        val out = ByteArrayOutputStream()
-        var jpegImg = bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out);
+        if (f.exists()) {
+          f.delete()
+        }
+        else {
+          var fOut: FileOutputStream = FileOutputStream(f)
+          var jpgImage = bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fOut);
+          fOut.flush()
+          fOut.close()
+
+          tryEmailing(this.to_email, decode64(getString(R.string.smtp_email)), this.from_email, "Our First Assignment From CPEN321", this.body_email, filePath)
+        }
+
         val intent = Intent(context,ConfettiActivity::class.java)
         intent.putExtra("to_email", to_email)
         startActivity(intent)
-
+        activity?.finish()
       }
     }
 
     val canvas: Canvas = surfaceHolder!!.lockCanvas()
     draw(canvas, person, bitmap)
+  }
+
+
+  private fun tryEmailing(emailTo: String?, emailFrom: String?, emailCC: String?, subject: String?, body: String?, image_path: String?) {
+    val emailManager = EmailManager(decode64(getString(R.string.smtp_email)), decode64(getString(R.string.smtp_credentials)))
+    emailManager.configureSMTP(true, true, "smtp.gmail.com", 587)
+    emailManager.setEmailContents(emailTo, emailFrom, emailCC, subject, body, image_path)
+    emailManager.execute()
+    Log.d(TAG, "Michael EmailTo: " + emailTo)
+    Log.d(TAG, "Michael EmailFrom: " + emailFrom)
+    Log.d(TAG, "Michael EmailCC: " + emailCC)
+    Log.d(TAG, "Michael Subject: " + subject)
+    Log.d(TAG, "Michael Body: " + body)
+    Log.d(TAG, "Michael Image Path: " + image_path)
+    Log.d(TAG, "Trying to email.")
+  }
+
+  private fun decode64(encodedVal: String): String? {
+    var decodedVal: String? = null
+    val data = Base64.decode(encodedVal, Base64.DEFAULT)
+    try {
+      decodedVal = String(data, Charset.forName("UTF-8"))
+
+    } catch (e: UnsupportedEncodingException) {
+      e.printStackTrace()
+    }
+
+    return decodedVal
   }
 
   private fun getSectorFromAngle(angle: Double) : Int {

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package dab.dabmail
+package dab.utilities
 
 import android.content.Context
 import android.graphics.Bitmap

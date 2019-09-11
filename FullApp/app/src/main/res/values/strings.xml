@@ -8,4 +8,7 @@
     <string name="body_hint">Body</string>
     <string name="send_email_btn">Lets DAB</string>
     <string name="camera_error">Camera2 APIs are not supported for the selected device</string>
+    <string name="smtp_email">bm9yZXBseWRhYnNvbmx5QGdtYWlsLmNvbQ==</string>
+    <string name="smtp_credentials">Y3BlbjMyMXR1dG9yaWFscw==</string>
+    <string name="valid_email_input_msg">Please provide valid email addresses</string>
 </resources>

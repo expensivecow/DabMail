@@ -32,15 +32,13 @@ public class ConfettiActivity extends AppCompatActivity {
                 .setFadeOutEnabled(true)
                 .setTimeToLive(2000L)
                 .addShapes(Shape.RECT, Shape.CIRCLE)
-                .addSizes(new Size(12, 5))
+                .addSizes(new Size(12, 5f))
                 .setPosition(-50f, viewKonfetti.getWidth() + 50f, -50f, -50f)
-                .streamFor(500, 5000L);
+                .streamFor(300, 5000L);
 
         Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             public void run() {
-                Intent intent = new Intent(ConfettiActivity.this, HomeActivity.class);
-                startActivity(intent);
                 ConfettiActivity.this.confettiText.setText("");
                 finish();
             }

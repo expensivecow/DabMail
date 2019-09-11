@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
@@ -16,7 +17,10 @@ import com.facebook.FacebookException;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
+
+import dab.utilities.EmailManager;
 
 public class LoginActivity extends AppCompatActivity {
     private final String TAG = "LoginActivity";
@@ -51,23 +55,34 @@ public class LoginActivity extends AppCompatActivity {
                 Log.d(TAG, "Oh no. You have no network or something wtf");
             }
         });
+
+        checkLoggedIn();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        checkLoggedIn();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-
-        if (AccessToken.getCurrentAccessToken() != null) {
-            Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-            startActivity(intent);
-            LoginActivity.this.finish();
-        }
+        checkLoggedIn();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         callbackManager.onActivityResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void checkLoggedIn() {
+        if (AccessToken.getCurrentAccessToken() != null) {
+            Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+            startActivity(intent);
+            LoginActivity.this.finish();
+        }
     }
 
     private void hideTitleBar() {

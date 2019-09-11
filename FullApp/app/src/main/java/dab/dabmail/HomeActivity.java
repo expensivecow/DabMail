@@ -20,7 +20,6 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,7 +34,6 @@ import org.json.JSONObject;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.net.URI;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -50,7 +48,7 @@ public class HomeActivity extends AppCompatActivity {
     CircleImageView displayPic;
     TextView welcomeTextView;
 
-    private int CAMERA_PERMISSION_CODE = 1;
+    private int GRANT_PERMISSION_CODE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,14 +65,19 @@ public class HomeActivity extends AppCompatActivity {
         sendEmailButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (inputDataIsValid() && checkCameraPermissions()) {
-                    Intent intent = new Intent(HomeActivity.this, CameraActivity.class);
-                    Bundle bundle = new Bundle();
-                    bundle.putString("from_email", fromEmailET.getText().toString());
-                    bundle.putString("to_email", toEmailET.getText().toString());
-                    bundle.putString("body_email", emailBodyET.getText().toString());
-                    intent.putExtras(bundle);
-                    startActivity(intent);
+                if (inputDataIsValid()) {
+                    if (checkRequiredPermissions()) {
+                        Intent intent = new Intent(HomeActivity.this, CameraActivity.class);
+                        Bundle bundle = new Bundle();
+                        bundle.putString("from_email", fromEmailET.getText().toString());
+                        bundle.putString("to_email", toEmailET.getText().toString());
+                        bundle.putString("body_email", emailBodyET.getText().toString());
+                        intent.putExtras(bundle);
+                        startActivity(intent);
+                    }
+                }
+                else {
+                    Toast.makeText(HomeActivity.this, getString(R.string.valid_email_input_msg), Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -83,16 +86,21 @@ public class HomeActivity extends AppCompatActivity {
         trackFBAccessToken();
     }
 
-    private boolean checkCameraPermissions() {
+    // Request Camera (For detecting dabs) and Read/Write External Storage (For saving images) Permissions
+    private boolean checkRequiredPermissions() {
         boolean result = false;
-        Log.d(TAG, "Michael: Requesting Permissions");
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
             result = true;
         }
         else {
-            requestCameraPermission();
+            requestRequiredPermissions();
 
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                    && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                    && ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                 result = true;
             }
         }
@@ -100,36 +108,41 @@ public class HomeActivity extends AppCompatActivity {
         return result;
     }
 
-    private void requestCameraPermission() {
+    private void requestRequiredPermissions() {
         if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
             new AlertDialog.Builder(HomeActivity.this)
-                    .setTitle("Camera Permission Needed")
-                    .setMessage("This app requires Camera permissions to detect when the user dabs")
+                    .setTitle("Camera, Read/Write External Storage Permissions Needed")
+                    .setMessage("This app requires Camera permissions to detect when the user dabs, and Read/Write external storage permissions to attach the dabbing image to email.")
                     .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            ActivityCompat.requestPermissions(HomeActivity.this, new String[] {Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
+                            ActivityCompat.requestPermissions(HomeActivity.this, new String[] {Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, GRANT_PERMISSION_CODE);
                         }
                     })
                     .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             dialogInterface.dismiss();
-                            Toast.makeText(HomeActivity.this, "The camera permission is required for detecting dabs.", Toast.LENGTH_SHORT);
+                            Toast.makeText(HomeActivity.this, "We require all permissions to be granted before we can dab on your friends.", Toast.LENGTH_SHORT);
                         }
                     })
                     .create()
                     .show();
         }
         else {
-            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
+            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE}, GRANT_PERMISSION_CODE);
         }
     }
 
     private boolean inputDataIsValid() {
-        // TODO: Write validation to check all inputs are correct, and emails are valid. There will not be enough time to add validations to the demo.
-        return true;
+        return isValidEmail(fromEmailET.getText().toString()) && isValidEmail(toEmailET.getText().toString());
     }
+
+    private boolean isValidEmail(String e) {
+        String regex = "^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$";
+        return e.matches(regex);
+    }
+
 
     private void trackFBAccessToken() {
         accessTokenTracker = new AccessTokenTracker() {

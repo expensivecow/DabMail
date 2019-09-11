@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-package dab.dabmail
+package dab.utilities
 
 /** Utility class for manipulating images.  */
 object ImageUtils {
@@ -69,8 +69,8 @@ object ImageUtils {
         // "0xff and" is used to cut off bits from following value that are higher than
         // the low 8 bits
         out[outputIndex] = convertYUVToRGB(
-          0xff and yData[positionY + i].toInt(), 0xff and uData[uvOffset].toInt(),
-          0xff and vData[uvOffset].toInt()
+                0xff and yData[positionY + i].toInt(), 0xff and uData[uvOffset].toInt(),
+                0xff and vData[uvOffset].toInt()
         )
         outputIndex += 1
       }
